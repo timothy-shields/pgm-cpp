@@ -1,4 +1,1 @@
-pgm
-===
-
-Probabilistic Graphical Models for C++11 done right
+# pgm: Probabilistic Graphical Models for C++11 done right
