@@ -97,7 +97,6 @@ public:
 		return assignment;
 	}
 
-	template <typename Key, typename Value>
 	table_factor<Key, Value> operator*(table_factor<Key, Value> const& B)
 	{
 		auto const& A = *this;
