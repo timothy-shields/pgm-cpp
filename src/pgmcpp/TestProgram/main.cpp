@@ -24,14 +24,31 @@ void TimeIt(string text, int repeatCount, std::function<void ()> f)
 	cout << text << " " << ms << endl;
 }
 
+void print(pgm::table_factor<char, double> const& F)
+{
+	for (size_t index = 0; index < F.size(); ++index)
+	{
+		auto assignment = F.index_to_assignment(index);
+		bool first = true;
+		std::for_each(assignment.begin(), assignment.end(), [&](std::pair<const char, std::size_t> const& v)
+		{
+			if (!first)
+				cout << ",";
+			cout << v.first << "=" << v.second;
+			first = false;
+		});
+		cout << ": " << F.at(index) << endl;
+	}
+}
+
 void run(int argc, char* argv[])
 {
-	map<char, size_t> vars;
-	vars.insert(make_pair('X', 3));
-	vars.insert(make_pair('Y', 2));
-	vars.insert(make_pair('Z', 4));
-	vector<double> vals;
-	pgm::table_factor<char, double> F(move(vars), move(vals));
+	map<char, size_t> varsF;
+	varsF.insert(make_pair('X', 3));
+	varsF.insert(make_pair('Y', 2));
+	varsF.insert(make_pair('Z', 4));
+	vector<double> valsF(3*2*4);
+	pgm::table_factor<char, double> F(move(varsF), move(valsF));
 
 	for (size_t x = 0; x < 3; ++x)
 	for (size_t y = 0; y < 2; ++y)
@@ -46,6 +63,43 @@ void run(int argc, char* argv[])
 		assignment = F.index_to_assignment(index);
 		cout << " -> (" << x << "," << y << "," << z << ")" << endl;
 	}
+
+	cout << endl;
+
+	map<char, size_t> varsG;
+	varsG.insert(make_pair('X', 2));
+	varsG.insert(make_pair('Y', 2));
+	vector<double> valsG;
+	valsG.push_back(1);
+	valsG.push_back(2);
+	valsG.push_back(3);
+	valsG.push_back(4);
+	pgm::table_factor<char, double> G(move(varsG), move(valsG));
+
+	cout << "G: " << endl;
+	print(G);
+	cout << endl;
+
+	map<char, size_t> varsH;
+	varsH.insert(make_pair('Y', 2));
+	varsH.insert(make_pair('Z', 2));
+	vector<double> valsH;
+	valsH.push_back(10);
+	valsH.push_back(200);
+	valsH.push_back(3000);
+	valsH.push_back(40000);
+	pgm::table_factor<char, double> H(move(varsH), move(valsH));
+
+
+	cout << "H: " << endl;
+	print(H);
+	cout << endl;
+
+	auto GH = G * H;
+
+	cout << "G*H: " << endl;
+	print(GH);
+	cout << endl;
 
 	string junk;
 	getline(std::cin, junk);
