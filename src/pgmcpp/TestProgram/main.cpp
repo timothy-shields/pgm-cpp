@@ -42,7 +42,9 @@ void run(int argc, char* argv[])
 		assignment.insert(make_pair('Y', y));
 		assignment.insert(make_pair('Z', z));
 		auto index = F.assignment_to_index(assignment);
-		cout << "X=" << x << " Y=" << y << " Z=" << z << ": " << index << endl;
+		cout << "(" << x << "," << y << "," << z << ") -> " << index;
+		assignment = F.index_to_assignment(index);
+		cout << " -> (" << x << "," << y << "," << z << ")" << endl;
 	}
 
 	string junk;

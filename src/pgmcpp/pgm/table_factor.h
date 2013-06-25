@@ -31,11 +31,11 @@ public:
 	{
 	}
 
-	std::size_t assignment_to_index(std::map<Key, std::size_t> const& assignment)
+	std::size_t assignment_to_index(std::map<Key, std::size_t> const& assignment) const
 	{
 		std::size_t index = 0;
 		std::size_t prod = 1;
-		std::for_each(vars.rbegin(), vars.rend(), [&](var& v)
+		std::for_each(vars.crbegin(), vars.crend(), [&](var const& v)
 		{
 			auto const& key = v.first;
 			auto card = v.second;
@@ -45,15 +45,23 @@ public:
 		return index;
 	}
 
-	std::vector<std::size_t> index_to_assignment(std::size_t index)
+	var_map index_to_assignment(std::size_t index) const
 	{
-		std::vector<std::size_t> assignment;
+		var_map assignment;
+		std::size_t prod = 1;
+		std::for_each(vars.crbegin(), vars.crend(), [&](var const& v)
+		{
+			auto const& key = v.first;
+			auto card = v.second;
+			assignment.insert(std::make_pair(key, index % prod));
+			prod *= card;
+		});
 		return assignment;
 	}
 };
 
-//template <typename Key>
-//table_factor<Key> operator*(table_factor<Key> const& A, table_factor<Key> const& B)
+//template <typename Key, typename Value>
+//table_factor<Key, Value> operator*(table_factor<Key, Value> const& A, table_factor<Key, Value> const& B)
 //{
 //	if (A.vars.empty())
 //		return B;
