@@ -1,3 +1,5 @@
+#include <pgmcpp/pgm/table_factor.h>
+
 #include "ProgramUtils.h"
 
 #include <string>
@@ -24,8 +26,27 @@ void TimeIt(string text, int repeatCount, std::function<void ()> f)
 
 void run(int argc, char* argv[])
 {
-	std::string junk;
-	std::getline(std::cin, junk);
+	map<char, size_t> vars;
+	vars.insert(make_pair('X', 3));
+	vars.insert(make_pair('Y', 2));
+	vars.insert(make_pair('Z', 4));
+	vector<double> vals;
+	pgm::table_factor<char, double> F(move(vars), move(vals));
+
+	for (size_t x = 0; x < 3; ++x)
+	for (size_t y = 0; y < 2; ++y)
+	for (size_t z = 0; z < 4; ++z)
+	{
+		map<char, size_t> assignment;
+		assignment.insert(make_pair('X', x));
+		assignment.insert(make_pair('Y', y));
+		assignment.insert(make_pair('Z', z));
+		auto index = F.assignment_to_index(assignment);
+		cout << "X=" << x << " Y=" << y << " Z=" << z << ": " << index << endl;
+	}
+
+	string junk;
+	getline(std::cin, junk);
 	return;
 }
 
