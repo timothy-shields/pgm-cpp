@@ -101,8 +101,11 @@ void run(int argc, char* argv[])
 	print(GH);
 	cout << endl;
 
-	string junk;
-	getline(std::cin, junk);
+	if (argc > 1)
+	{
+		string junk;
+		getline(std::cin, junk);
+	}
 	return;
 }
 
