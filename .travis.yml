@@ -18,4 +18,11 @@ compiler:
 script: 
   - cmake -G "Unix Makefiles" -D CMAKE_INSTALL_PREFIX:STRING=./install --build ./build ./src
   - make
-  - ./build/pgmcpp/TestProgram/Debug/TestProgram.exe
+  - cd ./build
+  - ls
+  - cd ./pgmcpp
+  - ls
+  - cd ./TestProgram
+  - ls
+  - cd ./Debug
+  - ls
