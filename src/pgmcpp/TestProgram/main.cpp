@@ -76,7 +76,7 @@ void run(int argc, char* argv[])
 	valsG.push_back(4);
 	pgm::table_factor<char, double> G(move(varsG), move(valsG));
 
-	cout << "G: " << endl;
+	cout << "G(X,Y): " << endl;
 	print(G);
 	cout << endl;
 
@@ -91,14 +91,23 @@ void run(int argc, char* argv[])
 	pgm::table_factor<char, double> H(move(varsH), move(valsH));
 
 
-	cout << "H: " << endl;
+	cout << "H(Y,Z): " << endl;
 	print(H);
 	cout << endl;
 
-	auto GH = G * H;
+	auto K = G * H;
 
-	cout << "G*H: " << endl;
-	print(GH);
+	cout << "K(X,Y,Z) = G(X,Y) * H(Y,Z): " << endl;
+	print(K);
+	cout << endl;
+
+	std::set<char> S;
+	S.insert('Y');
+	S.insert('X');
+	auto M = K.marginalize(S);
+
+	cout << "M(X,Z) = sum_Z { K(X,Y,Z) }:" << endl;
+	print(M);
 	cout << endl;
 
 	if (argc > 1)
