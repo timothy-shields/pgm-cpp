@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <map>
+#include <set>
 #include <vector>
 #include <algorithm>
 #include <numeric>
@@ -16,19 +17,38 @@ template <typename Key, typename Value>
 class table_factor
 {
 private:
-	typedef std::pair<const Key, std::size_t> var;
+	typedef std::pair<Key const, std::size_t> var;
 	typedef std::map<Key, std::size_t> var_map;
 	typedef less_pair_first<var> less_var;
 
 	std::map<Key, std::size_t> vars;
 	std::vector<Value> vals;
 
-	void resize()
+	static var_map get_var_map(std::set<Key> const& keys)
 	{
-		auto product = std::accumulate(
+		var_map map;
+		std::transform(
+			keys.begin(), keys.end(),
+			std::inserter(map, map.end()),
+			[](Key const& v){ return std::make_pair(v, static_cast<std::size_t>(0)); });
+		return map;
+	}
+
+	std::size_t compute_size() const
+	{
+		return std::accumulate(
 			vars.cbegin(), vars.cend(), static_cast<std::size_t>(1),
 			[](std::size_t p, var const& v){ return p * v.second; });
-		vals.resize(product);
+	}
+
+	void resize()
+	{
+		vals.resize(compute_size());
+	}
+
+	void resize(Value const& value)
+	{
+		vals.resize(compute_size(), value);
 	}
 
 public:
@@ -40,6 +60,11 @@ public:
 		: vars(std::forward<std::map<Key, std::size_t>>(vars))
 		, vals(std::forward<std::vector<Value>>(vals))
 	{
+	}
+
+	bool empty() const
+	{
+		return vars.empty();
 	}
 
 	std::size_t size() const
@@ -65,6 +90,26 @@ public:
 	Value const& at(var_map const& assignment) const
 	{
 		return vals[assignment_to_index(assignment)];
+	}
+
+	Value& operator[](std::size_t index)
+	{
+		return at(index);
+	}
+
+	Value const& operator[](std::size_t index) const
+	{
+		return at(index);
+	}
+
+	Value& operator[](var_map const& assignment)
+	{
+		return at(assignment);
+	}
+
+	Value const& operator[](var_map const& assignment) const
+	{
+		return at(assignment);
 	}
 
 	std::size_t assignment_to_index(std::map<Key, std::size_t> const& assignment) const
@@ -97,25 +142,57 @@ public:
 		return assignment;
 	}
 
-	table_factor<Key, Value> operator*(table_factor<Key, Value> const& B)
+	static table_factor<Key, Value> factor_product(table_factor<Key, Value> const& A, table_factor<Key, Value> const& B)
 	{
-		auto const& A = *this;
-		if (A.vars.empty())
+		if (A.empty())
 			return B;
-		if (B.vars.empty())
+		if (B.empty())
 			return A;
-		table_factor<Key, Value> C;
+		table_factor<Key, Value> R;
 		std::set_union(
 			A.vars.begin(), A.vars.end(),
 			B.vars.begin(), B.vars.end(),
-			std::inserter(C.vars, C.vars.end()));
-		C.resize();
-		for (auto index = 0; index < C.size(); ++index)
+			std::inserter(R.vars, R.vars.end()));
+		R.resize();
+		for (auto index = 0; index < R.size(); ++index)
 		{
-			auto assignment = C.index_to_assignment(index);
-			C.vals[index] = A.at(assignment) * B.at(assignment);
+			auto assignment = R.index_to_assignment(index);
+			R[index] = A[assignment] * B[assignment];
 		}
-		return C;
+		return R;
+	}
+
+	static table_factor<Key, Value> factor_marginalize(table_factor<Key, Value> const& F, std::set<Key> const& vars)
+	{
+		if (F.empty() || vars.empty())
+			return F;
+		table_factor<Key, Value> R;
+		auto vars_map = get_var_map(vars);
+		less_pair_first<var> less;
+		std::set_difference(
+			F.vars.begin(), F.vars.end(),
+			vars_map.begin(), vars_map.end(),
+			std::inserter(R.vars, R.vars.end()),
+			less);
+		R.resize();
+		for (auto index = 0; index < F.size(); ++index)
+		{
+			auto assignment = F.index_to_assignment(index);
+			R.at(assignment) += F.vals[index];
+		}
+		return R;
+	}
+
+	table_factor<Key, Value> operator*(table_factor<Key, Value> const& B) const
+	{
+		auto const& A = *this;
+		return factor_product(A, B);
+	}
+
+	table_factor<Key, Value> marginalize(std::set<Key> const& vars) const
+	{
+		auto const& F = *this;
+		return factor_marginalize(F, vars);
 	}
 };
 
